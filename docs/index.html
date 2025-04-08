@@ -6,46 +6,54 @@
     <title>Unity WebGL Player | brick_game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
-    #controls-panel {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 280px;
-      max-height: 300px;
-      overflow-y: auto;
-      background: rgba(0, 0, 0, 0.75);
-      border-radius: 10px;
-      color: #fff;
-      font-family: "Segoe UI", sans-serif;
-      font-size: 14px;
-      z-index: 9999;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    }
-    
-    #controls-panel ul {
-      padding-left: 20px;
-      margin-top: 0;
-      margin-bottom: 10px;
-    }
-    
-    #controls-panel li {
-      line-height: 1.6;
-    }
-    
-    .controls-header {
-      background-color: #2c2c2c;
-      padding: 10px;
-      font-weight: bold;
-      cursor: pointer;
-      border-top-left-radius: 10px;
-      border-top-right-radius: 10px;
-      user-select: none;
-    }
-    
-    #controls-content {
-      padding: 10px 15px;
-      display: block;
-    }    
+    <style>
+      #controls-panel {
+        position: fixed;
+        bottom: 20px;
+        right: -290px;
+        width: 280px;
+        max-height: 300px;
+        overflow-y: auto;
+        background: rgba(0, 0, 0, 0.75);
+        border-radius: 10px;
+        color: #fff;
+        font-family: "Segoe UI", sans-serif;
+        font-size: 14px;
+        z-index: 9999;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+      #controls-panel ul {
+        padding-left: 20px;
+        margin-top: 0;
+        margin-bottom: 10px;
+      }
+      #controls-panel li {
+        line-height: 1.6;
+      }
+      .controls-header {
+        background-color: #2c2c2c;
+        padding: 10px;
+        font-weight: bold;
+        cursor: pointer;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+        user-select: none;
+      }
+      #controls-content {
+        padding: 10px 15px;
+        display: block;
+      }
+      #language-switcher {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.75);
+        padding: 10px;
+        border-radius: 5px;
+        color: #fff;
+        cursor: pointer;
+      }
+    </style>
   </head>
   <body>
     <div id="unity-container" class="unity-desktop">
