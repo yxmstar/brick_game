@@ -6,6 +6,54 @@
     <title>Unity WebGL Player | brick_game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
+    <style>
+      #controls-panel {
+        position: fixed;
+        bottom: 20px;
+        right: -290px;
+        width: 280px;
+        max-height: 300px;
+        overflow-y: auto;
+        background: rgba(0, 0, 0, 0.75);
+        border-radius: 10px;
+        color: #fff;
+        font-family: "Segoe UI", sans-serif;
+        font-size: 14px;
+        z-index: 9999;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+      #controls-panel ul {
+        padding-left: 20px;
+        margin-top: 0;
+        margin-bottom: 10px;
+      }
+      #controls-panel li {
+        line-height: 1.6;
+      }
+      .controls-header {
+        background-color: #2c2c2c;
+        padding: 10px;
+        font-weight: bold;
+        cursor: pointer;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+        user-select: none;
+      }
+      #controls-content {
+        padding: 10px 15px;
+        display: block;
+      }
+      #language-switcher {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.75);
+        padding: 10px;
+        border-radius: 5px;
+        color: #fff;
+        cursor: pointer;
+      }
+    </style>
   </head>
   <body>
     <div id="unity-container" class="unity-desktop">
@@ -16,6 +64,20 @@
           <div id="unity-progress-bar-full"></div>
         </div>
       </div>
+      <!-- 操作指南 -->
+      <div id="controls-panel">
+        <div class="controls-header" onclick="toggleControls()">🕹️ <span id="title"></span></div>
+        <div id="controls-content">
+          <p id="build-mode-title"></p>
+          <ul id="build-mode-instructions">
+            <!-- 内容通过 JavaScript 动态填充 -->
+          </ul>
+          <p id="vertex-mode-title"></p>
+          <ul id="vertex-mode-instructions">
+            <!-- 内容通过 JavaScript 动态填充 -->
+          </ul>
+        </div>
+      </div>
       <div id="unity-warning"> </div>
       <div id="unity-footer">
         <div id="unity-webgl-logo"></div>
@@ -23,109 +85,88 @@
         <div id="unity-build-title">brick_game</div>
       </div>
     </div>
+    <div id="language-switcher" onclick="switchLanguage()">切换语言</div>
     <script>
+      var currentLanguage = "zh"; // 默认语言为中文
 
-      var container = document.querySelector("#unity-container");
-      var canvas = document.querySelector("#unity-canvas");
-      var loadingBar = document.querySelector("#unity-loading-bar");
-      var progressBarFull = document.querySelector("#unity-progress-bar-full");
-      var fullscreenButton = document.querySelector("#unity-fullscreen-button");
-      var warningBanner = document.querySelector("#unity-warning");
-
-      // Shows a temporary message banner/ribbon for a few seconds, or
-      // a permanent error message on top of the canvas if type=='error'.
-      // If type=='warning', a yellow highlight color is used.
-      // Modify or remove this function to customize the visually presented
-      // way that non-critical warnings and error messages are presented to the
-      // user.
-      function unityShowBanner(msg, type) {
-        function updateBannerVisibility() {
-          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
-        }
-        var div = document.createElement('div');
-        div.innerHTML = msg;
-        warningBanner.appendChild(div);
-        if (type == 'error') div.style = 'background: red; padding: 10px;';
-        else {
-          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-          setTimeout(function() {
-            warningBanner.removeChild(div);
-            updateBannerVisibility();
-          }, 5000);
-        }
-        updateBannerVisibility();
-      }
-
-      var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/Build.loader.js";
-      var config = {
-        dataUrl: buildUrl + "/Build.data",
-        frameworkUrl: buildUrl + "/Build.framework.js",
-        codeUrl: buildUrl + "/Build.wasm",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "DefaultCompany",
-        productName: "brick_game",
-        productVersion: "0.1",
-        showBanner: unityShowBanner,
+      const languageData = {
+        zh: {
+          title: "操作说明（点击展开/收起）",
+          buildModeTitle: "🧱 建造模式",
+          buildModeInstructions: [
+            "点击 UI 按钮开启建造",
+            "方向键 ← ↑ ↓ → 移动方块",
+            "按 R 键旋转预览方块",
+            "左键点击放置方块",
+            "按 ESC 退出建造模式",
+          ],
+          vertexModeTitle: "📐 顶点吸附模式",
+          vertexModeInstructions: [
+            "按 V 键进入/退出吸附模式",
+            "点击 Block 显示所有顶点",
+            "点击两个顶点完成吸附",
+            "在吸附模式下可用 Q/E/W/S/A/D 旋转",
+          ],
+        },
+        en: {
+          title: "Controls (Click to Expand/Collapse)",
+          buildModeTitle: "🧱 Build Mode",
+          buildModeInstructions: [
+            "Click the UI button to start building",
+            "Use arrow keys ← ↑ ↓ → to move the block",
+            "Press R to rotate the preview block",
+            "Left-click to place the block",
+            "Press ESC to exit build mode",
+          ],
+          vertexModeTitle: "📐 Vertex Snap Mode",
+          vertexModeInstructions: [
+            "Press V to toggle snap mode",
+            "Click a block to display vertices",
+            "Click two vertices to snap",
+            "Use Q/E/W/S/A/D to rotate in snap mode",
+          ],
+        },
       };
 
-      // By default, Unity keeps WebGL canvas render target size matched with
-      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-      // Set this to false if you want to decouple this synchronization from
-      // happening inside the engine, and you would instead like to size up
-      // the canvas DOM size and WebGL render target sizes yourself.
-      // config.matchWebGLToCanvasSize = false;
+      function updateContent() {
+        document.getElementById("title").innerText = languageData[currentLanguage].title;
+        document.getElementById("build-mode-title").innerText =
+          languageData[currentLanguage].buildModeTitle;
 
-      // If you would like all file writes inside Unity Application.persistentDataPath
-      // directory to automatically persist so that the contents are remembered when
-      // the user revisits the site the next time, uncomment the following line:
-      // config.autoSyncPersistentDataPath = true;
-      // This autosyncing is currently not the default behavior to avoid regressing
-      // existing user projects that might rely on the earlier manual
-      // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
-      // expected to change.
+        const buildModeList = document.getElementById("build-mode-instructions");
+        buildModeList.innerHTML = "";
+        languageData[currentLanguage].buildModeInstructions.forEach((instruction) => {
+          const li = document.createElement("li");
+          li.innerText = instruction;
+          buildModeList.appendChild(li);
+        });
 
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
+        document.getElementById("vertex-mode-title").innerText =
+          languageData[currentLanguage].vertexModeTitle;
 
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
-        container.className = "unity-mobile";
-        canvas.className = "unity-mobile";
-
-        // To lower canvas resolution on mobile devices to gain some
-        // performance, uncomment the following line:
-        // config.devicePixelRatio = 1;
-
-
-      } else {
-        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
-
-        canvas.style.width = "960px";
-        canvas.style.height = "600px";
+        const vertexModeList = document.getElementById("vertex-mode-instructions");
+        vertexModeList.innerHTML = "";
+        languageData[currentLanguage].vertexModeInstructions.forEach((instruction) => {
+          const li = document.createElement("li");
+          li.innerText = instruction;
+          vertexModeList.appendChild(li);
+        });
       }
 
-      loadingBar.style.display = "block";
+      function switchLanguage() {
+        currentLanguage = currentLanguage === "zh" ? "en" : "zh";
+        updateContent();
+        document.getElementById("language-switcher").innerText =
+          currentLanguage === "zh" ? "切换语言" : "Switch Language";
+      }
 
-      var script = document.createElement("script");
-      script.src = loaderUrl;
-      script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
-          progressBarFull.style.width = 100 * progress + "%";
-              }).then((unityInstance) => {
-                loadingBar.style.display = "none";
-                fullscreenButton.onclick = () => {
-                  unityInstance.SetFullscreen(1);
-                };
-              }).catch((message) => {
-                alert(message);
-              });
-            };
+      function toggleControls() {
+        const content = document.getElementById("controls-content");
+        content.style.display = content.style.display === "none" ? "block" : "none";
+      }
 
-      document.body.appendChild(script);
-
+      // 初始化内容
+      updateContent();
     </script>
   </body>
 </html>
