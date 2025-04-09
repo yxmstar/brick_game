@@ -2,7 +2,6 @@
 <html lang="en-us">
   <head>
     <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity WebGL Player | brick_game</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
@@ -10,8 +9,8 @@
       #controls-panel {
         position: fixed;
         bottom: 20px;
-        right: -290px;
-        width: 280px;
+        right: -310px;
+        width: 300px;
         max-height: 300px;
         overflow-y: auto;
         background: rgba(0, 0, 0, 0.75);
@@ -47,45 +46,36 @@
         position: fixed;
         top: 20px;
         right: 20px;
-        background: rgba(0, 0, 0, 0.75);
-        padding: 10px;
-        border-radius: 5px;
+        background: rgba(30, 30, 30, 0.85);
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-family: "Segoe UI", sans-serif;
+        font-size: 14px;
         color: #fff;
         cursor: pointer;
+        transition: background 0.3s ease;
+      }
+      #language-switcher:hover {
+        background: rgba(60, 60, 60, 0.9);
       }
     </style>
   </head>
   <body>
     <div id="unity-container" class="unity-desktop">
-      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+      <canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
       <div id="unity-loading-bar">
         <div id="unity-logo"></div>
         <div id="unity-progress-bar-empty">
           <div id="unity-progress-bar-full"></div>
         </div>
       </div>
-      <!-- 操作指南 -->
-<div id="controls-panel">
-  <div class="controls-header" onclick="toggleControls()">🕹️ 操作说明（点击展开/收起）</div>
-  <div id="controls-content">
-    <p><b>🧱 建造模式</b></p>
-    <ul>
-      <li>点击 UI 按钮开启建造</li>
-      <li>方向键 ← ↑ ↓ → 移动方块</li>
-      <li>按 <b>R</b> 键旋转预览方块</li>
-      <li>左键点击放置方块</li>
-      <li>按 <b>ESC</b> 退出建造模式</li>
-    </ul>
 
-    <p><b>📐 顶点吸附模式</b></p>
-    <ul>
-      <li>按 <b>V</b> 键进入/退出吸附模式</li>
-      <li>点击 Block 显示所有顶点</li>
-      <li>点击两个顶点完成吸附</li>
-      <li>在吸附模式下可用 <b>Q/E/W/S/A/D</b> 旋转</li>
-    </ul>
-  </div>
-</div>
+      <!-- 操作指南 -->
+      <div id="controls-panel">
+        <div id="controls-header" class="controls-header" onclick="toggleControls()">🕹️ 操作说明（点击展开/收起）</div>
+        <div id="controls-content"></div>
+      </div>
+
       <div id="unity-warning"> </div>
       <div id="unity-footer">
         <div id="unity-webgl-logo"></div>
@@ -93,8 +83,8 @@
         <div id="unity-build-title">brick_game</div>
       </div>
     </div>
-    <script>
 
+    <script>
       var container = document.querySelector("#unity-container");
       var canvas = document.querySelector("#unity-canvas");
       var loadingBar = document.querySelector("#unity-loading-bar");
@@ -102,12 +92,6 @@
       var fullscreenButton = document.querySelector("#unity-fullscreen-button");
       var warningBanner = document.querySelector("#unity-warning");
 
-      // Shows a temporary message banner/ribbon for a few seconds, or
-      // a permanent error message on top of the canvas if type=='error'.
-      // If type=='warning', a yellow highlight color is used.
-      // Modify or remove this function to customize the visually presented
-      // way that non-critical warnings and error messages are presented to the
-      // user.
       function unityShowBanner(msg, type) {
         function updateBannerVisibility() {
           warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
@@ -118,7 +102,7 @@
         if (type == 'error') div.style = 'background: red; padding: 10px;';
         else {
           if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-          setTimeout(function() {
+          setTimeout(function () {
             warningBanner.removeChild(div);
             updateBannerVisibility();
           }, 5000);
@@ -139,40 +123,14 @@
         showBanner: unityShowBanner,
       };
 
-      // By default, Unity keeps WebGL canvas render target size matched with
-      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-      // Set this to false if you want to decouple this synchronization from
-      // happening inside the engine, and you would instead like to size up
-      // the canvas DOM size and WebGL render target sizes yourself.
-      // config.matchWebGLToCanvasSize = false;
-
-      // If you would like all file writes inside Unity Application.persistentDataPath
-      // directory to automatically persist so that the contents are remembered when
-      // the user revisits the site the next time, uncomment the following line:
-      // config.autoSyncPersistentDataPath = true;
-      // This autosyncing is currently not the default behavior to avoid regressing
-      // existing user projects that might rely on the earlier manual
-      // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
-      // expected to change.
-
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
-
         var meta = document.createElement('meta');
         meta.name = 'viewport';
         meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
         document.getElementsByTagName('head')[0].appendChild(meta);
         container.className = "unity-mobile";
         canvas.className = "unity-mobile";
-
-        // To lower canvas resolution on mobile devices to gain some
-        // performance, uncomment the following line:
-        // config.devicePixelRatio = 1;
-
-
       } else {
-        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
-
         canvas.style.width = "960px";
         canvas.style.height = "600px";
       }
@@ -195,10 +153,84 @@
             };
 
       document.body.appendChild(script);
+
+      // Controls logic
       function toggleControls() {
-    const content = document.getElementById("controls-content");
-    content.style.display = content.style.display === "none" ? "block" : "none";
-  }
+        const content = document.getElementById("controls-content");
+        content.style.display = content.style.display === "none" ? "block" : "none";
+      }
+
+      const languageSwitcher = document.createElement("div");
+      languageSwitcher.id = "language-switcher";
+      document.body.appendChild(languageSwitcher);
+
+      const controlsHeader = document.getElementById("controls-header");
+      const controlsContent = document.getElementById("controls-content");
+
+      const zhContent = `
+        <p><b>🧱 建造模式</b></p>
+        <ul>
+          <li>点击 UI 按钮开启建造</li>
+          <li>方向键 ← ↑ ↓ → 移动方块</li>
+          <li>按 <b>R</b> 键旋转预览方块</li>
+          <li>左键点击放置方块</li>
+          <li>按 <b>ESC</b> 退出建造模式</li>
+        </ul>
+        <p><b>📐 顶点吸附模式</b></p>
+        <ul>
+          <li>按 <b>V</b> 键进入/退出吸附模式</li>
+          <li>点击 Block 显示所有顶点</li>
+          <li>点击两个顶点完成吸附</li>
+          <li>在吸附模式下可用 <b>Q/E/W/S/A/D</b> 旋转</li>
+        </ul>
+      `;
+
+      const enContent = `
+        <p><b>🧱 Build Mode</b></p>
+        <ul>
+          <li>Click the UI button to enter build mode</li>
+          <li>Use Arrow Keys ← ↑ ↓ → to move blocks</li>
+          <li>Press <b>R</b> to rotate the preview block</li>
+          <li>Left click to place block</li>
+          <li>Press <b>ESC</b> to exit build mode</li>
+        </ul>
+        <p><b>📐 Vertex Snap Mode</b></p>
+        <ul>
+          <li>Press <b>V</b> to toggle snap mode</li>
+          <li>Click a Block to show all vertices</li>
+          <li>Select two vertices to snap</li>
+          <li>Use <b>Q/E/W/S/A/D</b> to rotate in snap mode</li>
+        </ul>
+      `;
+
+      const zhHeader = "🕹️ 操作说明（点击展开/收起）";
+      const enHeader = "🕹️ Controls (click to expand/collapse)";
+
+      function getBrowserLang() {
+        const lang = navigator.language || navigator.userLanguage;
+        return lang.startsWith("zh") ? "zh" : "en";
+      }
+
+      let currentLang = getBrowserLang();
+
+      function setLanguage(lang) {
+        if (lang === "zh") {
+          controlsContent.innerHTML = zhContent;
+          controlsHeader.textContent = zhHeader;
+          languageSwitcher.textContent = "🌐 English";
+        } else {
+          controlsContent.innerHTML = enContent;
+          controlsHeader.textContent = enHeader;
+          languageSwitcher.textContent = "🌐 中文";
+        }
+        currentLang = lang;
+      }
+
+      setLanguage(currentLang);
+
+      languageSwitcher.onclick = () => {
+        setLanguage(currentLang === "zh" ? "en" : "zh");
+      };
     </script>
   </body>
 </html>
